@@ -1,7 +1,6 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.exceptions import SQLError
-from sqlalchemy import *
 
 import datetime
 import time
@@ -251,7 +250,6 @@ class Device(object):
 
         return ports
 
-
     @property
     def active_ips(self):
         ips = []
@@ -263,16 +261,17 @@ class Device(object):
                     if ip.active:
                         ips.append(ip.ip)
         return ips
+        
+    @property
+    def active_nodes(self):
+        nodes = []
+        for p in self.ports:
+            nodes.extend(p.active_nodes)
+        return nodes
 
-
-    @classmethod
-    def find_aps(self):
-        return Device.query.filter(Device.model.like("%AIR%")).all()
-
-    @classmethod
-    def find_by_subnet(self, subnet):
-        params = [bindparam('subnet',subnet)]
-        return Device.query.select(engine.text(":subnet >> ip",bindparams=params), order_by=[device.c.ip])
+    @property
+    def active_node_ips(self):
+        return [n.ip for n in self.active_nodes]
     
     def discover(self, user=None):
         return self._do_something('discover',user=user)
@@ -293,18 +292,6 @@ class Device(object):
         if not user:
             user = User.query.get("backend")
         return Admin.add(user=user, device=self, action=thing, subaction=subaction)
-        
-    @property
-    def active_nodes(self):
-        nodes = []
-        for p in self.ports:
-            nodes.extend(p.active_nodes)
-        return nodes
-
-    @property
-    def active_node_ips(self):
-        return [n.ip for n in self.active_nodes]
-
 
     @property
     def ports_as_dict(self):
@@ -331,7 +318,16 @@ class Device(object):
            for monitoring, if the time it was macsucked was too long ago,
            something is wrong
         """
-        return Device.query.filter(Device.c.last_macsuck!=None).order_by(Device.c.last_macsuck.desc()).first()
+        return Device.query.filter(Device.last_macsuck!=None).order_by(Device.last_macsuck.desc()).first()
+
+    @classmethod
+    def find_aps(self):
+        return Device.query.filter(Device.model.like("%AIR%")).all()
+
+    @classmethod
+    def find_by_subnet(self, subnet):
+        params = [bindparam('subnet',subnet)]
+        return Device.query.filter(engine.text(":subnet >> ip",bindparams=params)).order_by([device.c.ip])
 
 class Port(object):
 

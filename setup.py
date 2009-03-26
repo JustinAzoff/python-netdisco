@@ -2,7 +2,7 @@ from setuptools import setup
 from glob import glob
 
 setup(name='netdisco',
-    version='1.0.0',
+    version='0.9.9',
     scripts=glob('scripts/*'),
     packages = ['netdisco'],
     package_dir = {'netdisco': 'lib'},
@@ -12,10 +12,10 @@ setup(name='netdisco',
         ],
     entry_points = {
         'console_scripts': [
-            'nd-add     = netdisco.db:add_device_entry',
-            'nd-refresh = netdisco.db:refresh_device_entry',
-            'nd-wait-for-jobs = netdisco.db:wait_for_jobs',
-            'nd-check-device  = netdisco.checkdevice:main',
+            'netdisco-add     = netdisco.db:add_device_entry',
+            'netdisco-refresh = netdisco.db:refresh_device_entry',
+            'netdisco-wait-for-jobs = netdisco.db:wait_for_jobs',
+            'netdisco-check-device  = netdisco.checkdevice:main',
         ]
     }
 ) 
