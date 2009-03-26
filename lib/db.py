@@ -362,8 +362,7 @@ class Port(object):
 
     @classmethod
     def get_by_mac(self, mac):
-        newmapper = Node.query
-        n = newmapper.selectfirst(Node.c.mac==mac,order_by=[desc(Node.c.time_last)])
+        n = Node.query.filter(Node.mac==mac).order_by(desc(Node.time_last)).first()
         if n:
             return n.device_port
 
@@ -395,30 +394,31 @@ class Port(object):
         if not (ip or mac):
             raise ValueError, "Specify an ip or a mac"
 
-        crit = [Port.c.ip==Node.c.switch, Port.c.port==Node.c.port]
+        crit = [Port.ip==Node.switch, Port.port==Node.port]
         if mac:
-            crit.append(Node.c.mac==mac)
+            crit.append(Node.mac==mac)
         elif ip:
-            crit.extend((Node.c.mac==Node_IP.c.mac,Node_IP.c.ip==ip))
+            crit.extend((Node.mac==Node_IP.mac,Node_IP.ip==ip))
         newmapper = Port.query.options(lazyload('nodes'))
-        return newmapper.select(and_(*crit),order_by=desc(Node.c.time_last))
+        return newmapper.filter(and_(*crit)).order_by(desc(Node.time_last))
 
     @classmethod
     def find_by_vlan(self, vlan, load_nodes=False):
+        vlan = str(vlan)
         q = Port.query
         if load_nodes:
             q = q.options(eagerload('device'),eagerload('nodes.ips'))
-        ports = q.select(Port.c.vlan==vlan, order_by=[Port.c.ip,func.length(Port.c.port),Port.c.port])
+        ports = q.filter(Port.vlan==vlan).order_by([Port.ip,func.length(Port.port),Port.port])
         return ports
 
     @classmethod
     def find_with_neighbors(self):
-        return Port.query.select(Port.c.remote_id != None, order_by=[Port.c.remote_ip])
+        return Port.query.filter(Port.remote_id != None).order_by([Port.remote_ip])
 
+    @classmethod
     def find_non_trunking(self):
         q = Port.query.options(lazyload('nodes'))
-        return q.select(and_(not_(Port.c.vlan==None), not_(Port.c.remote_id==None), Port.c.port!='FastEthernet0'), order_by=[Port.c.ip])
-    find_non_trunking = classmethod(find_non_trunking)
+        return q.filter(and_(not_(Port.vlan==None), Port.remote_id!=None)).order_by([Port.ip])
     
     @property
     def active_nodes(self):
@@ -641,7 +641,7 @@ class util:
     @classmethod
     def get_macs_for_ip(self, ip):
         """Return a list of mac addresses for this ip"""
-        nodes = Node_IP.query.filter(Node_IP.c.ip==ip).order_by(desc(Node_IP.c.time_last))
+        nodes = Node_IP.query.filter(Node_IP.ip==ip).order_by(desc(Node_IP.time_last))
         return [x.mac for x in nodes]
 
     def get_ips_for_mac(self, mac):
