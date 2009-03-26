@@ -670,10 +670,6 @@ class util:
         else :
             crit = []
 
-        dups=['N6513-IOS','RESNetRouter','NFS_IDF-1_Rm111_Router']
-        #ips to ignore, for whatever reason
-        ignore = set('169.226.44.1 10.230.0.2 10.230.0.3 10.230.0.4 10.230.0.5 10.230.0.6 10.230.0.7 10.230.0.8 169.226.13.49 192.168.39.1'.split())
-
         seen=set()
         for node in engine.execute(device.select(and_(*crit), order_by=[device.c.ip])):
             name=node.name
@@ -681,10 +677,7 @@ class util:
             model = node.model
             version = node.os_ver
 
-            if ip in ignore:
-                continue
-            
-            if name not in dups or name not in seen:
+            if name not in seen:
                 yield dict(ip=ip, name=name, model=model,version=version)
                 seen.add(name)
 
@@ -746,7 +739,7 @@ class util:
         n = node.c
         midnight = datetime.date.today()
         q = select([n.switch,n.port,func.count(n.mac)],
-            and_(n.active, n.time_last > midnight, not_(n.port.like("Dot11%")), n.switch!='169.226.52.1'),
+            and_(n.active, n.time_last > midnight, not_(n.port.like("Dot11%"))),
             group_by=[n.switch,n.port],
             having=func.count(n.mac) > 3,
             order_by=[n.switch,n.port]
