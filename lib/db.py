@@ -354,7 +354,7 @@ class Port(object):
     @classmethod
     def find_incorrect_descriptions(self):
         mapper = Port.query.options(eagerload('device'),lazyload('nodes'))
-        return mapper.select(and_(
+        return mapper.filter(and_(
                 not_(device_port.c.port.like("VLAN%")),
                 or_(device_port.c.name=='', device_port.c.name=='no device attached'),
                 device_port.c.up=='up'),
@@ -531,7 +531,7 @@ class Admin(object):
 
     @classmethod
     def get_pending(self):
-        return Admin.query.select(Admin.c.status.in_(['queued','running']))
+        return Admin.query.filter(Admin.status.in_(['queued','running'])).all()
 
     @classmethod
     def add(self, user, userip='127.0.0.1', device=None, port=None, action=None, subaction=None, debug=False):
@@ -539,15 +539,15 @@ class Admin(object):
             return False
 
         #try and find the same job already queued
-        crit = [admin.c.finished==None, admin.c.action==action, admin.c.subaction==subaction]
+        crit = [Admin.finished==None, Admin.action==action, Admin.subaction==subaction]
         if port:
-            crit.append(admin.c.port_name==port.name)
+            crit.append(Admin.port_name==port.name)
         if device:
-            crit.append(admin.c.device_ip==device.ip)
+            crit.append(Admin.device_ip==device.ip)
 
-        j = Admin.query.select(and_(*crit))
+        j = Admin.query.filter(and_(*crit)).first()
         if j:
-            return j[0]
+            return j
 
         j = Admin(userip=userip, action=action,subaction=subaction, debug=debug, status='queued')
         j.user=user
@@ -584,8 +584,8 @@ class User(object):
     @classmethod
     def authenticate(self, username, password):
         return User.query.filter(and_(
-            User.c.username==username,
-            User.c.password==func.md5(password)
+            User.username==username,
+            User.password==func.md5(password)
             )).first()
 
 class Blacklist(object):
@@ -828,7 +828,7 @@ def add_device_entry():
         add_device(ip)
 
 def refresh_device(ip):
-    d = Device.query.get_by(ip=ip)
+    d = Device.find(ip)
     u = User.query.get('backend')
     jobs = [
         d.refresh(u),
