@@ -7,12 +7,16 @@ def test_start():
     print "on SA ver: %s" % sqlalchemy.__version__
 
 IP = '10.1.2.2'
-MAC = '00:03:ba:cd:b5:21'
+MAC = '00:11:22:33:44:55'
+UIP = '10.1.2.100'
+DISABLED_IP = '10.1.2.101'
 
 def test_get_macs_for_ip():
-    ip = db.util.get_ips_for_mac(MAC)[0]
+    assert MAC in db.util.get_macs_for_ip(UIP)
 
-    assert MAC in db.util.get_macs_for_ip(ip)
+def test_get_ips_for_mac():
+    assert UIP in db.util.get_ips_for_mac(MAC)
+
 
 def test_get_all_ips():
     data = db.util.get_all_ips()
@@ -32,18 +36,9 @@ def test_find_aps():
     for ip,name,type in data:
         assert 'AIR' in type
 
-def get_a_disabled_ip():
-    for p in db.Port.find_admin_disabled():
-        for n in p.active_nodes:
-            return n.ip
-
 def test_is_disabled():
     assert db.util.is_disabled(mac=MAC) == False
-
-    ip = get_a_disabled_ip()
-    print "using disabled ip", ip
-
-    assert db.util.is_disabled(ip=ip)
+    assert db.util.is_disabled(ip=DISABLED_IP) == True
 
 def test_get_old_macs_by_subnet():
     #for now just make sure nothing is broken

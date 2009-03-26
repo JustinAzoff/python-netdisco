@@ -13,13 +13,12 @@ def test_find_admin_disabled():
         assert p.is_disabled == True
 
 IP = '10.1.2.2'
-MAC = '0003.bacd.b521'
+MAC = '00:11:22:33:44:55'
+UIP = '10.1.2.100'
 
 def test_get_by_ip():
     d = db.Device.find(IP)
-    test_ip = d.active_ips[0]
-
-    p = db.Port.get_by_ip(test_ip)
+    p = db.Port.get_by_ip(UIP)
     assert p.device.ip == IP
 
 def test_get_by_mac():
