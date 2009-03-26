@@ -8,7 +8,6 @@ import sys
 import md5
 import socket
 
-import ieeemac
 
 import ConfigParser
 
@@ -747,6 +746,7 @@ class util:
     def find_many_ports_from_string(self, s):
         data = []
         import findipsandmacs
+        import ieeemac
         for x in findipsandmacs.find(s):
             p = None
             mac = None
