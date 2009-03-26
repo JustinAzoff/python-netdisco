@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+from netdisco import db
+import fping
+import datetime
+
+def oldest_macsuck(all):
+    for d in all:
+        if fping.pingone(d.ip,fast=True):
+            return d
+
+def num_devices_in(ages, minutes):
+    return len([1 for (d,a) in ages if a <= minutes])
+
+def device_ages(all):
+    now = datetime.datetime.now()
+    for d in all:
+        if d.last_macsuck:
+            yield d, (now - d.last_macsuck).seconds/60
+
+def main():
+    all_devices = db.Device.query.order_by(db.Device.last_macsuck).all()
+    ages = list(device_ages(all_devices))
+
+    oldest = oldest_macsuck(all_devices)
+    age = datetime.datetime.now() - oldest.last_macsuck
+    minutes = age.seconds/60
+
+    print "Oldest device: %s %s" % (oldest.ip, oldest.name)
+    print "last polled at: %s (%d minutes)" % ( oldest.last_macsuck, minutes)
+
+
+    print "%-5d Devices sucked in under %d minutes" % (num_devices_in(ages, 1),1)
+    for m in range(10, minutes+10, 10):
+        m = m/10*10
+        if m > minutes: m = minutes+1
+        print "%-5d Devices sucked in under %d minutes" % (num_devices_in(ages, m), m)
+
+    print "Average time = %d minutes" % (sum(a for (d,a) in ages)/len(ages))
+    db.engine.dispose()
+
+if __name__ == "__main__": 
+    main()

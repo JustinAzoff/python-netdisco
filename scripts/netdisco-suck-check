@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+from netdisco import db
+from sys import exit
+import datetime
+
+WARN_TIME = 60*10
+MAX_TIME  = 60*20
+
+def main():
+    last = db.Device.last_to_be_macsucked()
+    db.engine.dispose()
+    now = datetime.datetime.now()
+    diff = now - last.last_macsuck
+    if diff.seconds <= MAX_TIME:
+        print 'ok: %s | seconds=%s[s]' % (diff.seconds, diff.seconds)
+        exit(0)
+    if diff.seconds <= WARN_TIME:
+        print 'ok: %s | seconds=%s[s]' % (diff.seconds, diff.seconds)
+        exit(1)
+        
+
+    print 'Netdisco Failure'
+    print 'Last macsuck'
+    print ' ', last
+    print ' ', last.last_macsuck
+    print ' ', diff.seconds, 'ago'
+    exit(2)
+
+
+if __name__ == "__main__": 
+    main()
