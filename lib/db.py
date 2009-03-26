@@ -17,7 +17,7 @@ c.read(['/etc/netdisco/db.cfg','db.cfg'])
 DOMAIN = c.get('misc','domain')
 engine = create_engine(c.get('db','uri'))
 Session = scoped_session(sessionmaker(autoflush=True, transactional=False, bind=engine))
-metadata = MetaData()
+metadata = MetaData(bind=engine)
 mapper = Session.mapper
 
 try:
