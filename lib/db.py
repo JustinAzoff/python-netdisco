@@ -209,12 +209,12 @@ class Node_NBT(object):
     pass
 
 class Device(object):
-
     def __repr__(self):
         return "[%s %s]" % (self.ip, self.name)
 
     @classmethod
     def find(self, ip):
+        """Find a device by IP address, either directly, or via an alias"""
         d = Device.query.filter(Device.ip==ip).first()
         if d:
             return d
@@ -225,6 +225,16 @@ class Device(object):
 
     @property
     def neighbors(self):
+        """Return a list of dictionaries containing information about any CDP neighbors to this device
+
+         * port - The :class:`netdisco.db.Port` that the remote device was seen on
+         * remote_type - the type of remote device
+         * remote_id   - the name of the remote device
+         * remote_port - the port seen on the remote device
+         * repore_ip   - the ip of the remote device
+         * device - The :class:`netdisco.db.Device` object if one can be found
+        """
+
         res = []
         for x in self.ports:
             if not x.remote_id:
@@ -413,10 +423,12 @@ class Port(object):
 
     @classmethod
     def find_with_neighbors(self):
+        """Returns a list of ports that see a CDP neighbor"""
         return Port.query.filter(Port.remote_id != None).order_by([Port.remote_ip])
 
     @classmethod
     def find_non_trunking(self):
+        """Returns a list of ports that see a CDPneighbor, but are not trunking"""
         q = Port.query.options(lazyload('nodes'))
         return q.filter(and_(not_(Port.vlan==None), Port.remote_id!=None)).order_by([Port.ip])
     
@@ -689,6 +701,7 @@ class util:
 
     @classmethod
     def find_aps(self):
+        """Return a list of tuples of (ip, name, type)"""
         for p in Port.query.filter(and_(Port.remote_type.like('%AIR%'),Port.remote_ip!=None)):
             yield p.remote_ip, p.remote_id, p.remote_type
 
@@ -733,6 +746,7 @@ class util:
             
     @classmethod
     def find_ports_with_many_macs(self):
+        """Return a list of ports that see more than 3 MAC addresses"""
         n = node.c
         midnight = datetime.date.today()
         q = select([n.switch,n.port,func.count(n.mac)],
@@ -794,6 +808,10 @@ class util:
 
     @classmethod
     def get_vlan_counts(self, device_list):
+        """Return a list of vlans and the number of ports that are on that vlan
+
+        :param device_list: List of IP addresses of devices to search
+        """
         vlan = func.COALESCE(device_port.c.vlan,'TRUNK')
         return engine.execute(select(
                 [vlan,func.count(vlan)],
