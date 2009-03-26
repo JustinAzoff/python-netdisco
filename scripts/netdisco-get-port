@@ -16,5 +16,6 @@ def get_port(q):
 if __name__ == "__main__":
     import sys
     q = sys.argv[1]
-    print get_port(q)
-
+    port = get_port(q)
+    if port:
+        print port.ip, port.port
