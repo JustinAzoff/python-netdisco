@@ -497,20 +497,6 @@ class Node_IP(object):
         return nodes[0].company
 
 class Admin(object):
-    Column('job',          Integer, primary_key=True),
-    Column('entered',      DateTime),
-    Column('started',      DateTime),
-    Column('finished',     DateTime),
-    Column('device',       String(15), ForeignKey("device.ip"), key="device_ip"),
-    Column('port',         String, ForeignKey("device_port.port"), key="port_name"),
-    Column('action',       String),
-    Column('subaction',    String),
-    Column('status',       String),
-    Column('username',     String, ForeignKey("users.username")),
-    Column('userip',       String(15)),
-    Column('log',          String),
-    Column('debug',        Boolean),
-
     def __init__(self, entered=None, started=None, finished=None, device=None, port=None, action=None, subaction=None, status=None, username=None, userip=None, log=None, debug=None):
         if not entered:
             entered = datetime.datetime.now()
