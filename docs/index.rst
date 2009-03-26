@@ -5,6 +5,10 @@
 Welcome to python-netdisco's documentation!
 ===========================================
 
+python-netdisco is a module for interfacing with the backend tables of a
+`Netdisco <http://www.netdisco.org/>`_ database. Various helper functions
+are built on top of the rich SQLAlchemy API.
+
 Contents:
 
 .. toctree::

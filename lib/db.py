@@ -644,9 +644,10 @@ class util:
         nodes = Node_IP.query.filter(Node_IP.ip==ip).order_by(desc(Node_IP.time_last))
         return [x.mac for x in nodes]
 
+    @classmethod
     def get_ips_for_mac(self, mac):
         """Return a list of ip addresses for this mac"""
-        nodes = Node_IP.query.filter(Node_IP.c.mac==mac).order_by(desc(Node_IP.c.time_last))
+        nodes = Node_IP.query.filter(Node_IP.mac==mac).order_by(desc(Node_IP.time_last))
         return [x.ip for x in nodes]
 
 
@@ -683,12 +684,12 @@ class util:
         real_ips = select([device.c.ip],     distinct=True)
         aliases = select([device_ip.c.alias],distinct=True)
         all_ips = union(real_ips, aliases)
-        return Port.query.filter(not_(Port.c.remote_ip.in_(all_ips))).all()
+        return Port.query.filter(not_(Port.remote_ip.in_(all_ips))).all()
 
 
     @classmethod
     def find_aps(self):
-        for p in Port.query.filter(and_(Port.c.remote_type.like('%AIR%'),Port.c.remote_ip!=None)):
+        for p in Port.query.filter(and_(Port.remote_type.like('%AIR%'),Port.remote_ip!=None)):
             yield p.remote_ip, p.remote_id, p.remote_type
 
     @classmethod
