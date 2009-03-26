@@ -34,7 +34,7 @@ def test_find():
 
 def test_find_all():
     #for now just make sure nothing is broken
-    ports = db.Port.find_all(mac='MAC')
+    ports = db.Port.find_all(mac=MAC)
 
 def test_find_by_vlan():
     #for now just make sure nothing is broken
