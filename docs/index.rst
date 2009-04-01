@@ -15,6 +15,7 @@ Contents:
    :maxdepth: 2
 
    basic_usage
+   scripts
    api
 
 Indices and tables
