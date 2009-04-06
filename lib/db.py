@@ -353,11 +353,11 @@ class Port(object):
     @classmethod
     def find_incorrect_descriptions(self):
         mapper = Port.query.options(eagerload('device'),lazyload('nodes'))
-        return mapper.filter(and_(
+        q = mapper.filter(and_(
                 not_(device_port.c.port.like("VLAN%")),
                 or_(device_port.c.name=='', device_port.c.name=='no device attached'),
-                device_port.c.up=='up'),
-            order_by=[device_port.c.ip,func.length(device_port.c.port), device_port.c.port ])
+                device_port.c.up=='up'))
+        return q.order_by([device_port.c.ip,func.length(device_port.c.port), device_port.c.port])
 
     @classmethod
     def find_admin_disabled(self):
