@@ -469,6 +469,42 @@ class Port(object):
         delta = datetime.timedelta(seconds=diff_sec)
         return self.device.last_discover - delta
     
+    def disable(self, reason='compromised', longreason='', user=None, userip='127.0.0.1'):
+        """Disable this port"""
+        return self._portControl(direction='down', reason=reason, longreason=longreason, user=user, userip=userip)
+
+    def enable(self, reason='compromised', longreason='', user=None, userip='127.0.0.1'):
+        """Enable this port"""
+        return self._portControl(direction='up', reason=reason, longreason=longreason, user=user, userip=userip)
+
+    def change_vlan(self, vlan, user=None, userip='127.0.0.1'):
+        """Change this port to a different vlan"""
+        if not user:
+            user = User.query.get("backend")
+        if self.remote_ip or self.remote_type :
+            raise AssertionError("You cannot change the vlan on uplink ports!")
+
+        vlan = str(vlan)
+        return Admin.add(user=user, userip=userip, device=self.device, port=self, action='vlan', subaction=vlan)
+
+    def _portControl(self, direction='enable', reason='compromised', longreason='', user=None, userip='127.0.0.1'):
+        if not user:
+            user = User.query.get("backend")
+
+        if direction not in ('up','down'):
+            raise AssertionError('direction must be up or down!')
+        cmd=direction
+
+        if self.remote_ip or self.remote_type :
+            raise AssertionError("You cannot shutoff uplink ports!")
+
+        subaction = "%s-%s" % (cmd, reason)
+
+        job = Admin.add(user=user, userip=userip, device=self.device, port=self,
+                action='portcontrol', subaction=subaction,
+                log=longreason, debug=False)
+
+        return job
 
 class Node(object):
     @property
@@ -519,7 +555,7 @@ class Admin(object):
         return Admin.query.filter(Admin.status.in_(['queued','running'])).all()
 
     @classmethod
-    def add(self, user, userip='127.0.0.1', device=None, port=None, action=None, subaction=None, debug=False):
+    def add(self, user, userip='127.0.0.1', device=None, port=None, action=None, subaction=None, log=None, debug=False):
         if (not device or not action) and (action!='discover' and subaction):
             return False
 
@@ -534,7 +570,7 @@ class Admin(object):
         if j:
             return j
 
-        j = Admin(userip=userip, action=action,subaction=subaction, debug=debug, status='queued')
+        j = Admin(userip=userip, action=action,subaction=subaction, debug=debug, log=log, status='queued')
         j.user=user
         j.device=device
         j.port=port
