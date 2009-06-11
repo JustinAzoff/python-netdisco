@@ -584,8 +584,8 @@ class Admin(object):
         while time.time() < timeout_time:
             Session.refresh(self)
             status=self.status
-            print status
-            sys.stdout.flush()
+            #print status
+            #sys.stdout.flush()
             if status in ('done','error'):
                 break
             time.sleep(1)
