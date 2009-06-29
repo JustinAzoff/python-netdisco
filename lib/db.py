@@ -479,6 +479,8 @@ class Port(object):
 
     def change_vlan(self, vlan, user=None, userip='127.0.0.1'):
         """Change this port to a different vlan"""
+        if not hasattr(user, 'username'):
+            user = User.query.get(user)
         if not user:
             user = User.query.get("backend")
         if self.remote_ip or self.remote_type :
