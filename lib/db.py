@@ -488,6 +488,8 @@ class Port(object):
         return Admin.add(user=user, userip=userip, device=self.device, port=self, action='vlan', subaction=vlan)
 
     def _portControl(self, direction='enable', reason='compromised', longreason='', user=None, userip='127.0.0.1'):
+        if not hasattr(user, 'username'):
+            user = User.query.get(user)
         if not user:
             user = User.query.get("backend")
 
