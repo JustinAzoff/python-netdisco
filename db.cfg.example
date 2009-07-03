@@ -1,2 +1,8 @@
 [db]
 uri     = postgres://netdisco:pw@server/netdisco
+
+[misc]
+domain = .example.com
+
+[ping_inventory]
+ini_file = /configs/pinginventory/ua.ini
