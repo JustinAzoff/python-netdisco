@@ -1,0 +1,6 @@
+#!/usr/bin/env python2.4
+
+from netdisco.db import *
+
+for x in Node_IP.get_active_ips():
+    print x
