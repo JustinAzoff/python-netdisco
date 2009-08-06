@@ -15,9 +15,22 @@ c = ConfigParser.ConfigParser()
 c.read(['/etc/netdisco/db.cfg','db.cfg'])
 DOMAIN = c.get('misc','domain')
 engine = create_engine(c.get('db','uri'))
-Session = scoped_session(sessionmaker(autoflush=True, transactional=False, bind=engine))
+Session = scoped_session(sessionmaker(autoflush=True, autocommit=True, bind=engine))
 metadata = MetaData(bind=engine)
-mapper = Session.mapper
+
+from sqlalchemy.orm import mapper as sqla_mapper
+def session_mapper(scoped_session):
+    def mapper(cls, *arg, **kw):
+        if cls.__init__ is object.__init__:
+            def __init__(self, **kwargs):
+                for key, value in kwargs.items():
+                    setattr(self, key, value)
+            cls.__init__ = __init__
+        cls.query = scoped_session.query_property()
+        return sqla_mapper(cls, *arg, **kw)
+    return mapper
+mapper = session_mapper(Session)
+
 
 try:
     set
