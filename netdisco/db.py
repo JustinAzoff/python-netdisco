@@ -7,12 +7,17 @@ import time
 import sys
 import md5
 import socket
+import os
 
 
 import ConfigParser
 
 c = ConfigParser.ConfigParser()
-c.read(['/etc/netdisco/db.cfg','db.cfg'])
+path = os.getenv("NETDISCO_DB_CFG")
+if path:
+    c.read([path])
+else:
+    c.read(['/etc/netdisco/db.cfg','db.cfg'])
 DOMAIN = c.get('misc','domain')
 engine = create_engine(c.get('db','uri'))
 Session = scoped_session(sessionmaker(autoflush=True, autocommit=True, bind=engine))
@@ -533,7 +538,8 @@ class Node_IP(object):
     def get_active_ips(self):
         """Return a list of active client ips"""
         ips = []
-        for node in engine.execute(node_ip.select(and_(node_ip.c.active==True, "time_last > current_timestamp - interval '1 day' "),order_by=[node_ip.c.ip])):
+        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+        for node in engine.execute(node_ip.select(and_(node_ip.c.active==True, node_ip.c.time_last > yesterday),order_by=[node_ip.c.ip])):
             ips.append(node.ip)
         return ips
         

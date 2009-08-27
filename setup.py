@@ -5,7 +5,6 @@ setup(name='netdisco',
     version='0.9.9',
     scripts=glob('scripts/*'),
     packages = ['netdisco'],
-    package_dir = {'netdisco': 'lib'},
     install_requires=[
         "SQLAlchemy >= 0.4",
         "ieeemac",
