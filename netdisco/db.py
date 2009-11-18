@@ -128,16 +128,14 @@ device_port_log = Table('device_port_log', metadata,
     Column('creation',     DateTime)
 )
 
-#-- Create device_port_vlan table
-#CREATE TABLE device_port_vlan (
-#    ip          inet,   -- ip of device
-#    port        text,   -- Unique identifier of Physical Port Name
-#    vlan        integer, -- VLAN ID
-#    native      boolean not null default false, -- native or trunked
-#    creation    TIMESTAMP DEFAULT now(),
-#    last_discover TIMESTAMP DEFAULT now(),
-#    PRIMARY KEY(ip,port,vlan)
-#);
+device_port_vlan = Table('device_port_vlan', metadata,
+    Column('ip',           Integer, ForeignKey("device_port.ip"), primary_key=True),
+    Column('port',         String,  ForeignKey("device_port.port"), primary_key=True),
+    Column('vlan',         Integer, primary_key=True),
+    Column('native',       Boolean),
+    Column('creation',     DateTime),
+    Column('last_discover',DateTime),
+)
 
 #-- Create device_vlan table
 #CREATE TABLE device_vlan (
@@ -735,6 +733,14 @@ class Blacklist(object):
 class Blacklist_pending(object):
     pass
 
+class Port_Vlan(object):
+    pass
+class Vlan(object):
+    pass
+
+mapper(Port_Vlan, device_port_vlan)
+#mapper(Vlan, device_vlan)
+
 mapper(User, users)
 
 mapper(Oui, oui)
@@ -763,6 +769,9 @@ mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port
     ),
     'log':  relation(Port_Log, backref='device_port', order_by=[asc(device_port_log.c.creation)],
         primaryjoin=and_(device_port.c.ip==device_port_log.c.ip, device_port.c.port==device_port_log.c.port)
+    ),
+    'vlans': relation(Port_Vlan, backref='device_port', order_by=device_port_vlan.c.vlan,
+        primaryjoin=and_(device_port.c.ip==device_port_vlan.c.ip, device_port.c.port==device_port_vlan.c.port)
     ),
 })
 
