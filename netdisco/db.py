@@ -734,6 +734,8 @@ class Blacklist_pending(object):
     pass
 
 class Port_Vlan(object):
+    def __repr__(self):
+        return "[%s %s %sVlan %d]" % (self.ip, self.port, self.native and 'Native ' or '', self.vlan)
     pass
 class Vlan(object):
     pass
