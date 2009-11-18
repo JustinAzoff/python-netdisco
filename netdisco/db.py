@@ -137,16 +137,14 @@ device_port_vlan = Table('device_port_vlan', metadata,
     Column('last_discover',DateTime),
 )
 
-#-- Create device_vlan table
-#CREATE TABLE device_vlan (
-#    ip          inet,   -- ip of device
-#    vlan        integer, -- VLAN ID
-#    description text,   -- VLAN description
-#    creation    TIMESTAMP DEFAULT now(),
-#    last_discover TIMESTAMP DEFAULT now(),
-#    PRIMARY KEY(ip,vlan)
-#);
-#
+device_vlan = Table('device_vlan', metadata,
+    Column('ip',           Integer, ForeignKey("device.ip"), primary_key=True),
+    Column('vlan',         Integer, primary_key=True),
+    Column('description',  String),
+    Column('creation',     DateTime),
+    Column('last_discover',DateTime),
+)
+
 #--
 #-- Create device_power table
 #CREATE TABLE device_power (
@@ -736,12 +734,12 @@ class Blacklist_pending(object):
 class Port_Vlan(object):
     def __repr__(self):
         return "[%s %s %sVlan %d]" % (self.ip, self.port, self.native and 'Native ' or '', self.vlan)
-    pass
 class Vlan(object):
-    pass
+    def __repr__(self):
+        return "[%s Vlan %s]" % (self.ip, self.vlan)
 
 mapper(Port_Vlan, device_port_vlan)
-#mapper(Vlan, device_vlan)
+mapper(Vlan, device_vlan)
 
 mapper(User, users)
 
@@ -779,7 +777,8 @@ mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port
 
 mapper(Device, device, order_by=[device.c.ip], properties = {
     'aliases': relation(Device_IP, backref='device'),
-    'ports':   relation(Port, backref='device', order_by=[func.length(device_port.c.port), device_port.c.port]) #, lazy=False)
+    'ports':   relation(Port, backref='device', order_by=[func.length(device_port.c.port), device_port.c.port]),
+    'vlans':   relation(Vlan, backref='device', order_by=device_vlan.c.vlan),
 })
 
 
