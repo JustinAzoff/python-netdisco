@@ -770,7 +770,7 @@ mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port
     'log':  relation(Port_Log, backref='device_port', order_by=[asc(device_port_log.c.creation)],
         primaryjoin=and_(device_port.c.ip==device_port_log.c.ip, device_port.c.port==device_port_log.c.port)
     ),
-    'vlans': relation(Port_Vlan, backref='device_port', order_by=device_port_vlan.c.vlan,
+    'vlans': relation(Port_Vlan, backref='device_port', order_by=device_port_vlan.c.vlan, lazy=False,
         primaryjoin=and_(device_port.c.ip==device_port_vlan.c.ip, device_port.c.port==device_port_vlan.c.port)
     ),
 })
