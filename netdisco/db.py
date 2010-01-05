@@ -502,7 +502,8 @@ class Port(object):
         if not user:
             user = User.query.get("backend")
         if self.remote_ip or self.remote_type :
-            raise AssertionError("You cannot change the vlan on uplink ports!")
+            if 'AIR' not in self.remote_type:
+                raise AssertionError("You cannot change the vlan on uplink ports!")
 
         vlan = str(vlan)
         return Admin.add(user=user, userip=userip, device=self.device, port=self, action='vlan', subaction=vlan)
