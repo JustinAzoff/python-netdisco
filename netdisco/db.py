@@ -113,7 +113,7 @@ device_port = Table('device_port', metadata,
     Column('remote_id',    String),
     Column('vlan',         String),
     Column('lastchange',   Integer, key="_lastchange"),
-    Column('pvid',         Integer), 
+    Column('pvid',         Integer),
 )
 
 device_port_log = Table('device_port_log', metadata,
