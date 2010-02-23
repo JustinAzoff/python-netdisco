@@ -771,7 +771,7 @@ mapper(Device_IP, device_ip)
 mapper(Port_Log, device_port_log)
 
 mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port.c.port], properties = {
-    'nodes': relation(Node, backref='device_port', lazy=False, order_by=node.c.time_last.desc(),
+    'nodes': relation(Node, backref='device_port', lazy=True, order_by=node.c.time_last.desc(),
         primaryjoin=and_(device_port.c.ip==node.c.switch, device_port.c.port==node.c.port)
     ),
     'log':  relation(Port_Log, backref='device_port', order_by=[asc(device_port_log.c.creation)],
