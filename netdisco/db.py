@@ -527,7 +527,10 @@ class Port(object):
         q = Port.query
         if load_nodes:
             q = q.options(eagerload('device'),eagerload('nodes.ips'))
-        ports = q.filter(Port.vlan==vlan).order_by([Port.ip,func.length(Port.port),Port.port])
+        #i'm selecting one vlan, so don't bother loading all the vlans.
+        q = q.options(noload('vlans'))
+        ports = q.filter(and_(Port_Vlan.port==Port.port, Port_Vlan.ip==Port.ip,Port_Vlan.vlan==vlan))
+        ports = ports.order_by([Port.ip,func.length(Port.port),Port.port])
         return ports
 
     @classmethod
