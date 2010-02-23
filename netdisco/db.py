@@ -112,7 +112,8 @@ device_port = Table('device_port', metadata,
     Column('remote_type',  String),
     Column('remote_id',    String),
     Column('vlan',         String),
-    Column('lastchange',   Integer, key="_lastchange")
+    Column('lastchange',   Integer, key="_lastchange"),
+    Column('pvid',         Integer),
 )
 
 device_port_log = Table('device_port_log', metadata,
@@ -126,6 +127,53 @@ device_port_log = Table('device_port_log', metadata,
     Column('action',       String),
     Column('creation',     DateTime)
 )
+
+device_port_vlan = Table('device_port_vlan', metadata,
+    Column('ip',           Integer, ForeignKey("device_port.ip"), primary_key=True),
+    Column('port',         String,  ForeignKey("device_port.port"), primary_key=True),
+    Column('vlan',         Integer, primary_key=True),
+    Column('native',       Boolean),
+    Column('creation',     DateTime),
+    Column('last_discover',DateTime),
+)
+
+device_vlan = Table('device_vlan', metadata,
+    Column('ip',           Integer, ForeignKey("device.ip"), primary_key=True),
+    Column('vlan',         Integer, primary_key=True),
+    Column('description',  String),
+    Column('creation',     DateTime),
+    Column('last_discover',DateTime),
+)
+
+#--
+#-- Create device_power table
+#CREATE TABLE device_power (
+#    ip          inet,   -- ip of device
+#    module      integer,-- Module from PowerEthernet index
+#    power       integer,-- nominal power of the PSE expressed in Watts
+#    status      text,   -- The operational status
+#    PRIMARY KEY(ip,module)
+#);
+
+#-- Create device_port_power table
+#CREATE TABLE device_port_power (
+#    ip          inet,   -- ip of device
+#    port        text,   -- Unique identifier of Physical Port Name
+#    module      integer,-- Module from PowerEthernet index
+#    admin       text,   -- Admin power status
+#    status      text,   -- Detected power status
+#    class       text,   -- Detected class
+#    PRIMARY KEY(port,ip)
+#);
+#
+#CREATE TABLE device_port_wireless (
+#    ip          inet,   -- ip of device
+#    port        text,   -- Unique identifier of Physical Port Name
+#    channel     integer,-- 802.11 channel number
+#    power       integer -- transmit power in mw
+#);
+
+
 
 node = Table('node', metadata,
     Column('mac',          String(20), primary_key=True),
@@ -158,6 +206,18 @@ node_nbt = Table('node_nbt', metadata,
     Column('time_last',    DateTime),
 )
 
+#--
+#-- node_monitor, for lost/stolen device monitoring
+#CREATE TABLE node_monitor (
+#    mac         macaddr,
+#    active      boolean,
+#    why         text,
+#    cc          text,
+#    date        TIMESTAMP DEFAULT now(),
+#    PRIMARY KEY(mac)
+#);
+
+
 oui = Table('oui',  metadata,
     Column('oui',          String(8), primary_key=True),
     Column('company',      String)
@@ -189,7 +249,39 @@ users = Table('users', metadata,
     Column('admin',        Boolean, default=False),
     Column('fullname',     String),
     Column('note',         String),
+    Column('ldap',         Boolean),
 )
+#-- Create device_module table
+#CREATE TABLE device_module (
+#    ip            inet not null,
+#    index         integer,
+#    description   text,
+#    type          text,
+#    parent        integer,
+#    name          text,
+#    class         text,
+#    pos           integer,
+#    hw_ver        text,
+#    fw_ver        text,
+#    sw_ver        text,
+#    serial        text,
+#    model         text,
+#    fru           boolean,
+#    creation      TIMESTAMP DEFAULT now(),
+#    last_discover TIMESTAMP
+#    );
+
+#-- Create process table - Queue to coordinate between processes in multi-process mode.
+#CREATE TABLE process (
+#    controller  integer not null, -- pid of controlling process
+#    device      inet not null,
+#    action      text not null,    -- arpnip, macsuck, nbtstat, discover
+#    status      text,             -- queued, running, skipped, done, error, timeout, nocdp, nosnmp
+#    count       integer,
+#    creation    TIMESTAMP DEFAULT now()
+#    );
+
+
 
 blacklist = Table('blacklist', metadata,
     Column('b_id',         Integer, primary_key=True, key='id'),
@@ -435,7 +527,10 @@ class Port(object):
         q = Port.query
         if load_nodes:
             q = q.options(eagerload('device'),eagerload('nodes.ips'))
-        ports = q.filter(Port.vlan==vlan).order_by([Port.ip,func.length(Port.port),Port.port])
+        #i'm selecting one vlan, so don't bother loading all the vlans.
+        q = q.options(noload('vlans'))
+        ports = q.filter(and_(Port_Vlan.port==Port.port, Port_Vlan.ip==Port.ip,Port_Vlan.vlan==vlan))
+        ports = ports.order_by([Port.ip,func.length(Port.port),Port.port])
         return ports
 
     @classmethod
@@ -639,6 +734,16 @@ class Blacklist(object):
 class Blacklist_pending(object):
     pass
 
+class Port_Vlan(object):
+    def __repr__(self):
+        return "[%s %s %sVlan %d]" % (self.ip, self.port, self.native and 'Native ' or '', self.vlan)
+class Vlan(object):
+    def __repr__(self):
+        return "[%s Vlan %s]" % (self.ip, self.vlan)
+
+mapper(Port_Vlan, device_port_vlan)
+mapper(Vlan, device_vlan)
+
 mapper(User, users)
 
 mapper(Oui, oui)
@@ -668,11 +773,15 @@ mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port
     'log':  relation(Port_Log, backref='device_port', order_by=[asc(device_port_log.c.creation)],
         primaryjoin=and_(device_port.c.ip==device_port_log.c.ip, device_port.c.port==device_port_log.c.port)
     ),
+    'vlans': relation(Port_Vlan, backref='device_port', order_by=device_port_vlan.c.vlan, lazy=False,
+        primaryjoin=and_(device_port.c.ip==device_port_vlan.c.ip, device_port.c.port==device_port_vlan.c.port)
+    ),
 })
 
 mapper(Device, device, order_by=[device.c.ip], properties = {
     'aliases': relation(Device_IP, backref='device'),
-    'ports':   relation(Port, backref='device', order_by=[func.length(device_port.c.port), device_port.c.port]) #, lazy=False)
+    'ports':   relation(Port, backref='device', order_by=[func.length(device_port.c.port), device_port.c.port]),
+    'vlans':   relation(Vlan, backref='device', order_by=device_vlan.c.vlan),
 })
 
 
