@@ -522,14 +522,18 @@ class Port(object):
         return newmapper.filter(and_(*crit)).order_by(desc(Node.time_last))
 
     @classmethod
-    def find_by_vlan(self, vlan, load_nodes=False):
+    def find_by_vlan(self, vlan, load_nodes=False, include_trunks=False):
         vlan = str(vlan)
         q = Port.query
         if load_nodes:
             q = q.options(eagerload('device'),eagerload('nodes.ips'))
         #i'm selecting one vlan, so don't bother loading all the vlans.
         q = q.options(noload('vlans'))
-        ports = q.filter(and_(Port_Vlan.port==Port.port, Port_Vlan.ip==Port.ip,Port_Vlan.vlan==vlan))
+        if include_trunks:
+            ports = q.filter(and_(Port_Vlan.port==Port.port, Port_Vlan.ip==Port.ip,Port_Vlan.vlan==vlan))
+        else:
+            ports = q.filter(Port.vlan==vlan)
+
         ports = ports.order_by([Port.ip,func.length(Port.port),Port.port])
         return ports
 
