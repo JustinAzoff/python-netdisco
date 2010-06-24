@@ -456,7 +456,7 @@ class Port(object):
     @classmethod
     def get_num_incorrect_descriptions(self):
         return Port.query.filter(and_(
-                    not_(device_port.c.port.like("VLAN%")),
+                    not_(device_port.c.port.ilike("VLAN%")),
                     or_(device_port.c.name=='', device_port.c.name=='no device attached'),
                     device_port.c.up=='up')).count()
 
@@ -464,7 +464,7 @@ class Port(object):
     def find_incorrect_descriptions(self):
         mapper = Port.query.options(eagerload('device'),lazyload('nodes'))
         q = mapper.filter(and_(
-                not_(device_port.c.port.like("VLAN%")),
+                not_(device_port.c.port.ilike("VLAN%")),
                 or_(device_port.c.name=='', device_port.c.name=='no device attached'),
                 device_port.c.up=='up'))
         return q.order_by([device_port.c.ip,func.length(device_port.c.port), device_port.c.port])
