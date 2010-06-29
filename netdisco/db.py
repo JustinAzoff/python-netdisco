@@ -697,7 +697,7 @@ class Admin(object):
         j.user=user
         j.device=device
         j.port=port
-        Session.save(j)
+        Session.add(j)
         Session.flush()
         return j
 
