@@ -673,6 +673,12 @@ class Admin(object):
         self.log = log
         self.debug=debug
 
+    def __repr__(self):
+        a = self.action
+        if self.subaction:
+            a = "%s(%s)" % (a, self.subaction)
+        return "[%s %s %s %s]" % (a, self.device_ip, self.port_name or '', self.status)
+
     @classmethod
     def get_pending(self):
         return Admin.query.filter(Admin.status.in_(['queued','running'])).all()
