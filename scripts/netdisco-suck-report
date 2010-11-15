@@ -36,7 +36,7 @@ def main():
         if m > minutes: m = minutes+1
         print "%-5d Devices sucked in under %d minutes" % (num_devices_in(ages, m), m)
 
-    print "Average time = %d minutes" % (sum(a for (d,a) in ages)/len(ages))
+    print "Average time = %d minutes" % (sum(a for (d,a) in ages if a < minutes)/len(ages))
     db.engine.dispose()
 
 if __name__ == "__main__": 
