@@ -540,7 +540,7 @@ class Port(object):
     @classmethod
     def find_with_neighbors(self):
         """Returns a list of ports that see a CDP neighbor"""
-        return Port.query.filter(Port.remote_id != None).order_by([Port.remote_ip])
+        return Port.query.filter(Port.remote_id != None).order_by(Port.remote_ip)
 
     @classmethod
     def find_non_trunking(self):
