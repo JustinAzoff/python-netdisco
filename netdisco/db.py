@@ -534,7 +534,7 @@ class Port(object):
         else:
             ports = q.filter(Port.vlan==vlan)
 
-        ports = ports.order_by([Port.ip,func.length(Port.port),Port.port])
+        ports = ports.order_by(Port.ip,func.length(Port.port),Port.port)
         return ports
 
     @classmethod
@@ -546,7 +546,7 @@ class Port(object):
     def find_non_trunking(self):
         """Returns a list of ports that see a CDPneighbor, but are not trunking"""
         q = Port.query.options(lazyload('nodes'))
-        return q.filter(and_(not_(Port.vlan==None), Port.remote_id!=None)).order_by([Port.ip])
+        return q.filter(and_(not_(Port.vlan==None), Port.remote_id!=None)).order_by(Port.ip)
     
     @property
     def active_nodes(self):
