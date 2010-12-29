@@ -528,7 +528,7 @@ class Port(object):
         if load_nodes:
             q = q.options(eagerload('device'),eagerload('nodes.ips'))
         #i'm selecting one vlan, so don't bother loading all the vlans.
-        q = q.options(noload('vlans'))
+        q = q.options(lazyload('vlans'))
         if include_trunks:
             ports = q.filter(and_(Port_Vlan.port==Port.port, Port_Vlan.ip==Port.ip,Port_Vlan.vlan==vlan))
         else:
