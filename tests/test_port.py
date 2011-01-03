@@ -50,3 +50,11 @@ def test_find_non_trunking():
     #for now just make sure nothing is broken
     for p in db.Port.find_non_trunking():
         print p
+
+def test_find_by_description():
+    num=0
+    for p in db.Port.find_by_description("vmware"):
+        assert 'vmware' in p.name.lower()
+        num+=1
+
+    assert num==1

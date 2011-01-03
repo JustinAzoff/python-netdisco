@@ -538,6 +538,11 @@ class Port(object):
         return ports
 
     @classmethod
+    def find_by_description(self, desc):
+        q = "%" + desc + "%"
+        return Port.query.filter(Port.name.ilike(q))
+
+    @classmethod
     def find_with_neighbors(self):
         """Returns a list of ports that see a CDP neighbor"""
         return Port.query.filter(Port.remote_id != None).order_by(Port.remote_ip)
