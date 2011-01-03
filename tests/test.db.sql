@@ -71,11 +71,12 @@ CREATE TABLE device_port (
 	remote_id VARCHAR, 
 	vlan VARCHAR, 
 	lastchange INTEGER, 
+    pvid integer,
 	PRIMARY KEY (ip, port), 
 	 FOREIGN KEY(ip) REFERENCES device (ip)
 );
-INSERT INTO "device_port" VALUES('10.1.2.2','FastEthernet0/1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-INSERT INTO "device_port" VALUES('10.1.2.2','FastEthernet0/2',NULL,NULL,NULL,'down',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO "device_port" VALUES('10.1.2.2','FastEthernet0/1',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "device_port" VALUES('10.1.2.2','FastEthernet0/2',NULL,NULL,NULL,'down',NULL,NULL,NULL,NULL,'VMWare',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
 CREATE TABLE blacklist (
 	b_id INTEGER NOT NULL, 
 	ip VARCHAR(15), 
@@ -177,4 +178,13 @@ CREATE TABLE node_nbt (
 	 FOREIGN KEY(mac) REFERENCES node (mac), 
 	 FOREIGN KEY(ip) REFERENCES node_ip (ip)
 );
+CREATE TABLE device_port_vlan (
+    ip inet NOT NULL,
+    port text,
+    vlan integer,
+    native boolean DEFAULT false,
+    creation TIMESTAMP,
+    last_discover TIMESTAMP
+);
+
 COMMIT;
