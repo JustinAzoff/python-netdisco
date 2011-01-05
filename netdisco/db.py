@@ -865,7 +865,7 @@ class util:
         real_ips = select([device.c.ip],     distinct=True)
         aliases = select([device_ip.c.alias],distinct=True)
         all_ips = union(real_ips, aliases)
-        return Port.query.filter(not_(Port.remote_ip.in_(all_ips))).all()
+        return Port.query.filter(not_(Port.remote_ip.in_(all_ips)))
 
 
     @classmethod
