@@ -5,7 +5,10 @@ from sqlalchemy.exceptions import SQLError
 import datetime
 import time
 import sys
-import md5
+try :
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 import socket
 import os
 
@@ -730,7 +733,7 @@ class Admin(object):
 class User(object):
     @classmethod
     def add(self, username, password, fullname, note=None, port_control=False,admin=False):
-        password = md5.md5(password).hexdigest()
+        password = md5(password).hexdigest()
         u = User(username=username, password=password, fullname=fullname, note=note, port_control=port_control, admin=admin)
         Session.save(u)
         Session.flush()
