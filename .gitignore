@@ -5,6 +5,7 @@
 *.egg-info
 dist
 build
+docs/.build
 eggs
 parts
 bin
@@ -17,3 +18,5 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
+nosetests.xml
+tests/test.db
