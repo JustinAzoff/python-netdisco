@@ -1,6 +1,5 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
-from sqlalchemy.exceptions import SQLError
 
 import datetime
 import time
