@@ -2,7 +2,7 @@ from setuptools import setup
 from glob import glob
 
 setup(name='netdisco',
-    version='1.2',
+    version='1.3',
     scripts=glob('scripts/*'),
     packages = ['netdisco'],
     install_requires=[

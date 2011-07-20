@@ -795,6 +795,10 @@ mapper(Port, device_port, order_by=[func.length(device_port.c.port), device_port
     'vlans': relation(Port_Vlan, backref='device_port', order_by=device_port_vlan.c.vlan, lazy=False,
         primaryjoin=and_(device_port.c.ip==device_port_vlan.c.ip, device_port.c.port==device_port_vlan.c.port)
     ),
+    'jobs':  relation(Admin, backref='port', order_by=[asc(admin.c.entered)],
+        foreign_keys=[admin.c.device_ip, admin.c.port_name],
+        primaryjoin=and_(device_port.c.ip==admin.c.device_ip, device_port.c.port==admin.c.port_name)
+    ),
 })
 
 mapper(Device, device, order_by=[device.c.ip], properties = {
@@ -807,7 +811,6 @@ mapper(Device, device, order_by=[device.c.ip], properties = {
 mapper(Admin, admin, properties = {
     'user': relation(User),
     'device': relation(Device),
-    'port':   relation(Port,primaryjoin=and_(admin.c.device_ip==device_port.c.ip, admin.c.port_name==device_port.c.port))
 })
 
 #mapper(Blacklist, blacklist_with_extra, properties = {
