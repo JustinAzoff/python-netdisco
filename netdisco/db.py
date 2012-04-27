@@ -469,7 +469,7 @@ class Port(object):
                 not_(device_port.c.port.ilike("VLAN%")),
                 or_(device_port.c.name=='', device_port.c.name=='no device attached'),
                 device_port.c.up=='up'))
-        return q.order_by([device_port.c.ip,func.length(device_port.c.port), device_port.c.port])
+        return q.order_by(device_port.c.ip,func.length(device_port.c.port), device_port.c.port)
 
     @classmethod
     def find_admin_disabled(self):
