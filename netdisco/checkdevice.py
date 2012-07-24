@@ -1,7 +1,6 @@
-#!/usr/bin/env python2.4
+#!/usr/bin/env python
 from netdisco.db import *
-import fping
-from sets import Set as set
+import ping_wrapper
 from pinginventory import PingInventory
 
 class NotFound(Exception):
@@ -39,7 +38,7 @@ def check_switch(device):
             remove.add(ip)
     
     ips = ips - remove
-    up = set(fping.pingmany(ips,fast=True))
+    up = set(ping_wrapper.ping_many(ips))
     down = ips - up
         
     return up, down
@@ -73,3 +72,6 @@ def main():
     ok = len(up) >= len(down)
     if not ok:
         print "More devices down than up, might be bad"
+
+if __name__ == "__main__":
+    main()
