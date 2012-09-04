@@ -617,10 +617,10 @@ class Port(object):
         return Admin.add(user=user, userip=userip, device=self.device, port=self, action='vlan', subaction=vlan)
 
     def _portControl(self, direction='enable', reason='compromised', longreason='', user=None, userip='127.0.0.1'):
+        if user is None:
+            user = User.query.get("backend")
         if not hasattr(user, 'username'):
             user = User.query.get(user)
-        if not user:
-            user = User.query.get("backend")
 
         if direction not in ('up','down'):
             raise AssertionError('direction must be up or down!')
