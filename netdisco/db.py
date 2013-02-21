@@ -627,7 +627,8 @@ class Port(object):
         cmd=direction
 
         if self.remote_ip or self.remote_type :
-            raise AssertionError("You cannot shutoff uplink ports!")
+            if 'AIR' not in self.remote_type:
+                raise AssertionError("You cannot shutoff uplink ports!")
 
         subaction = "%s-%s" % (cmd, reason)
 
