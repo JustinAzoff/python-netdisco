@@ -852,7 +852,7 @@ class util:
     def get_all_ips_dict(self, ciscoonly=False):
         """return a list of dictionaries full of info"""
         if ciscoonly:
-            crit = [device.c.vendor=='cisco',device.c.os=='ios']
+            crit = (device.c.vendor=='cisco', or_(device.c.os=='ios', device.c.os=='nx-os'))
         else :
             crit = []
 
