@@ -16,12 +16,18 @@ def older_ranges(nodes):
 
         t += d
 
+def normal(ports):
+    for p in ports:
+        n = p.port.lower()
+        if 'vlan' in n or 'channel' in n:
+            continue
+        yield p
+
 def get_nodes(devs):
     nodes=[]
     for ip in devs:
         d = netdisco_db.Device.find(ip)
-        for p in d.ports:
-            if 'vlan' in p.port.lower(): continue
+        for p in normal(d.ports):
             if p.nodes:
                 #due to mapper configuration, nodes[0] is most recent node
                 nodes.append((p.nodes[0]))
@@ -49,13 +55,14 @@ def show_report(devs):
     print "Port usage by switch:"
     for x, ports in devices.items():
         d = netdisco_db.Device.find(x)
-        print x, len(ports), "out of", len(d.ports)
+        print x, len(ports), "out of", len(list(normal(d.ports)))
         f = open("/tmp/shutdown/%s.txt" % x,'w')
         for p in d.ports:
             if '/' not in p.port: continue
             if 'gig' in p.port.lower(): continue
             if p.port in ports: continue
             if p.status == 'disabled': continue
+            if p.remote_id: continue
             if p.status == 'up':
                 print p, 'is up'
                 continue
