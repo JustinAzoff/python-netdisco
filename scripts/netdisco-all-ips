@@ -10,6 +10,8 @@ def getallips(ciscoonly=False):
 
 def filter(nodes, q):
     for ip, name in nodes:
+        if not name:
+            name=''
         if not q or (q in ip or q.lower() in name.lower()):
             yield ip, name
         

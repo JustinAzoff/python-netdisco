@@ -852,7 +852,7 @@ class util:
     def get_all_ips_dict(self, ciscoonly=False):
         """return a list of dictionaries full of info"""
         if ciscoonly:
-            crit = (device.c.vendor=='cisco', or_(device.c.os=='ios', device.c.os=='nx-os'))
+            crit = (device.c.vendor=='cisco', or_(device.c.os=='ios', device.c.os=='nx-os', device.c.os=='ios-xe'))
         else :
             crit = []
 
@@ -862,9 +862,10 @@ class util:
             ip=node.ip
             model = node.model
             version = node.os_ver
+            serial = node.serial
 
             if name not in seen:
-                yield dict(ip=ip, name=name, model=model,version=version)
+                yield dict(ip=ip, name=name, model=model,version=version,serial=serial)
                 seen.add(name)
 
     @classmethod
